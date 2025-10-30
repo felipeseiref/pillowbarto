@@ -1,89 +1,106 @@
-<html xmlns='http://www.w3.org/1999/xhtml'>
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>KeyShotXR Scroll</title>
-    <style type="text/css">
-      body {
-        height: 6000px; /* Espacio para scrollear */
-        margin: 0;
-        background-color: #ffffff;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>KeyShotXR Scroll Control</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+      /* Altura mayor para permitir scroll suficiente */
+      min-height: 300vh;
+    }
+    #KeyShotXR {
+      position: sticky;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #ffffff;
+      z-index: 10;
+    }
+    /* Contenedor para contenido después del XR */
+    .content-section {
+      width: 100%;
+      max-width: 1200px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+  </style>
+
+  <script type="text/javascript" src="RealCLoth2.1822/files/KeyShotXR.js"></script>
+  <script type="text/javascript">
+    var xrInstance;
+    var totalFrames = 379; // igual que uCount
+
+    function initKeyShotXR() {
+      var nameOfDiv = "KeyShotXR";
+      var folderName = "RealCLoth2.1822";
+      var viewPortWidth = 497;
+      var viewPortHeight = 883;
+      var backgroundColor = "#FFFFFF";
+      var uCount = 379;
+      var vCount = 1;
+      var uWrap = true;
+      var vWrap = false;
+      var uMouseSensitivity = -0.05;
+      var vMouseSensitivity = 0.05;
+      var uStartIndex = 378;
+      var vStartIndex = 0;
+      var minZoom = 1;
+      var maxZoom = 1;
+      var rotationDamping = 0.96;
+      var downScaleToBrowser = true;
+      var addDownScaleGUIButton = false;
+      var downloadOnInteraction = false;
+      var imageExtension = "png";
+      var showLoading = true;
+      var loadingIcon = "LOGO-03-03.png";
+      var allowFullscreen = true;
+      var uReverse = false;
+      var vReverse = false;
+      var hotspots = {};
+      var isIBooksWidget = false;
+
+      xrInstance = new keyshotXR(
+        nameOfDiv, folderName, viewPortWidth, viewPortHeight, backgroundColor,
+        uCount, vCount, uWrap, vWrap, uMouseSensitivity, vMouseSensitivity,
+        uStartIndex, vStartIndex, minZoom, maxZoom, rotationDamping,
+        downScaleToBrowser, addDownScaleGUIButton, downloadOnInteraction,
+        imageExtension, showLoading, loadingIcon, allowFullscreen,
+        uReverse, vReverse, hotspots, isIBooksWidget
+      );
+
+      window.addEventListener('scroll', onScroll);
+    }
+
+    function onScroll() {
+      const scrollTop = window.scrollY;
+      const maxScroll = document.body.scrollHeight - window.innerHeight;
+      const scrollFraction = scrollTop / maxScroll;
+      const frame = Math.floor(scrollFraction * (totalFrames - 1));
+
+      if (xrInstance && xrInstance.D && xrInstance.O) {
+        xrInstance.O.src = xrInstance.D[frame];
       }
-      #KeyShotXR {
-        position: sticky;
-        top: 0;
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-    </style>
+    }
 
-    <script type="text/javascript" src="RealCLoth2.1822/files/KeyShotXR.js"></script>
-    <script type="text/javascript">
-      var keyshotXR;
-      var totalFrames = 379; // igual que tu uCount
+    window.onload = initKeyShotXR;
+  </script>
+</head>
+<body oncontextmenu="return false;">
+  <div id="KeyShotXR"></div>
 
-      function initKeyShotXR() {
-        var nameOfDiv = "KeyShotXR";
-        var folderName = "RealCLoth2.1822";
-        var viewPortWidth = 497;
-        var viewPortHeight = 883;
-        var backgroundColor = "#FFFFFF";
-        var uCount = 379;
-        var vCount = 1;
-        var uWrap = true;
-        var vWrap = false;
-        var uMouseSensitivity = -0.05;
-        var vMouseSensitivity = 0.05;
-        var uStartIndex = 378;
-        var vStartIndex = 0;
-        var minZoom = 1;
-        var maxZoom = 1;
-        var rotationDamping = 0.96;
-        var downScaleToBrowser = true;
-        var addDownScaleGUIButton = false;
-        var downloadOnInteraction = false;
-        var imageExtension = "png";
-        var showLoading = true;
-        var loadingIcon = "LOGO-03-03.png";
-        var allowFullscreen = true;
-        var uReverse = false;
-        var vReverse = false;
-        var hotspots = {};
-        var isIBooksWidget = false;
-
-        keyshotXR = new keyshotXR(
-          nameOfDiv, folderName, viewPortWidth, viewPortHeight, backgroundColor,
-          uCount, vCount, uWrap, vWrap, uMouseSensitivity, vMouseSensitivity,
-          uStartIndex, vStartIndex, minZoom, maxZoom, rotationDamping,
-          downScaleToBrowser, addDownScaleGUIButton, downloadOnInteraction,
-          imageExtension, showLoading, loadingIcon, allowFullscreen,
-          uReverse, vReverse, hotspots, isIBooksWidget
-        );
-
-        // 👉 Agregamos el listener de scroll después de inicializar el XR
-        window.addEventListener('scroll', onScroll);
-      }
-
-      function onScroll() {
-        const scrollTop = window.scrollY;
-        const maxScroll = document.body.scrollHeight - window.innerHeight;
-        const scrollFraction = scrollTop / maxScroll;
-        const frame = Math.floor(scrollFraction * (totalFrames - 1));
-
-        // Asegúrate de que la función exista (depende de tu versión de KeyShotXR.js)
-        if (keyshotXR && typeof keyshotXR.setImageIndex === 'function') {
-          keyshotXR.setImageIndex(frame);
-        }
-      }
-
-      window.onload = initKeyShotXR;
-    </script>
-  </head>
-  <body oncontextmenu="return false;">
-    <div id="KeyShotXR"></div>
-  </body>
+  <section class="content-section">
+    <h1>Contenido después del XR</h1>
+    <p>Aquí puedes colocar tu contenido que aparece después de que termine la animación de scrolling del XR.</p>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+    <!-- Añade más contenido según lo necesites -->
+  </section>
+</body>
 </html>
