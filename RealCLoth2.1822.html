@@ -39,59 +39,84 @@
     }
   </style>
 
-  <script type="text/javascript" src="RealCLoth2.1822/files/KeyShotXR.js"></script>
-  <script>
-  console.log('keyshotXR typeof:', typeof keyshotXR);
-</script>
-  <script type="text/javascript">
-    var xrInstance;
-    // Ajusta este valor si el total de frames es otra cosa:
-    var totalFrames = 379;
+<script type="text/javascript" src="./RealCLoth2.1822/files/KeyShotXR.js" defer></script>
+<script defer>
+  var xrInstance;
+  var totalFrames = 379; // <-- confirma que sea real (0..378)
+  
+  // Utilidad robusta de scroll
+  const getScrollY = () =>
+    window.pageYOffset ?? document.documentElement.scrollTop ?? document.body.scrollTop ?? 0;
 
-    function initKeyShotXR() {
-      xrInstance = new keyshotXR(
-        "KeyShotXR",
-        "RealCLoth2.1822",
-        497,
-        883,
-        "#FFFFFF",
-        379, 1,
-        true, false,
-        -0.05, 0.05,
-        378, 0,
-        1, 1,
-        0.96,
-        true, false,
-        false,
-        "png",
-        true,
-        "LOGO-03-03.png",
-        true,
-        false, false,
-        {}, false
-      );
-      window.addEventListener('scroll', onScroll);
+  // Reemplaza el número del frame en una URL manteniendo los ceros (…_0001.png -> …_0123.png)
+  function replaceFrameNumber(url, oneBasedIndex) {
+    // Busca el último grupo de dígitos antes de la extensión
+    const m = url.match(/(.*?)(\d+)(\.(?:png|jpg|jpeg|webp|gif))(?:\?.*)?$/i);
+    if (!m) return url; // si no matchea, devolvemos igual
+    const [ , prefix, digits, ext ] = m;
+    const width = digits.length;                      // cantidad de dígitos (p.ej. 4)
+    const next = String(oneBasedIndex).padStart(width, '0');
+    return `${prefix}${next}${ext}`;
+  }
+
+  function initKeyShotXR() {
+    console.log('keyshotXR typeof:', typeof keyshotXR); // debe ser "function"
+    xrInstance = new keyshotXR(
+      "KeyShotXR",
+      "RealCLoth2.1822",   // ¡asegurate que el folder coincida EXACTO en mayúsculas/minúsculas!
+      497, 883,
+      "#FFFFFF",
+      totalFrames, 1,
+      true, false,
+      -0.05, 0.05,
+      totalFrames - 1, 0,
+      1, 1,
+      0.96,
+      true, false,
+      false,
+      "png",
+      true,
+      "LOGO-03-03.png",
+      true,
+      false, false,
+      {}, false
+    );
+
+    // Esperá a que el visor inyecte el <img>
+    const ensureImg = () => document.querySelector('#KeyShotXR img');
+    let img = ensureImg();
+    if (!img) {
+      // reintento simple si se inyecta async
+      const id = setInterval(() => {
+        img = ensureImg();
+        if (img) { clearInterval(id); onScroll(); }
+      }, 16);
     }
 
     function onScroll() {
-      if (!xrInstance || !xrInstance.D || !xrInstance.O) return;
+      if (!img) img = ensureImg();
+      if (!img) return; // aún no aparece el <img>
 
-      var scrollTop = window.scrollY;
-      var maxScroll = document.body.scrollHeight - window.innerHeight;
-      var scrollFraction = scrollTop / maxScroll;
-      if (scrollFraction < 0) scrollFraction = 0;
-      if (scrollFraction > 1) scrollFraction = 1;
+      const maxScroll = Math.max(1, document.body.scrollHeight - window.innerHeight);
+      let t = getScrollY() / maxScroll;
+      t = Math.min(Math.max(t, 0), 1);
 
-      var frameIndex = Math.floor(scrollFraction * (totalFrames - 1));
-      // Debugging:
-      console.log("scrollFraction:", scrollFraction, "frameIndex:", frameIndex);
+      const idx0 = Math.floor(t * (totalFrames - 1)); // 0-based (0..378)
+      const idx1 = idx0 + 1;                          // 1-based para nombres tipo _0001
 
-      // Cambiar la imagen:
-      xrInstance.O.src = xrInstance.D[frameIndex];
+      // Deducimos la URL del frame usando la URL actual como plantilla
+      const nextUrl = replaceFrameNumber(img.src, idx1);
+      if (img.src !== nextUrl) img.src = nextUrl;
     }
 
-    window.onload = initKeyShotXR;
-  </script>
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', onScroll, { passive: true });
+    // Primer seteo
+    requestAnimationFrame(onScroll);
+  }
+
+  addEventListener('DOMContentLoaded', initKeyShotXR);
+</script>
 </head>
 <body oncontextmenu="return false;">
   <div id="KeyShotXR"></div>
