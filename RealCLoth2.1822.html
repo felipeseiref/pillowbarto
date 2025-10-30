@@ -1,110 +1,126 @@
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    background-color: #ffffff;
-    min-height: 1200vh; /* más largo => más lento */
-  }
-  #KeyShotXR {
-    position: sticky;
-    top: 0;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    align-items: center; 
-    justify-content: center;
-    background-color: #ffffff;
-    z-index: 10;
-    overflow: hidden;
-  }
-  #KeyShotXR img {
-    width: min(90vw, 900px); /* centrado y limitado */
-    height: auto;
-    display: block;
-  }
-</style>
-
-<script defer src="./RealCLoth2.1822/files/KeyShotXR.js"></script>
-<script defer>
-  var xrInstance;
-  var totalFrames = 379;
-
-  const getScrollY = () => window.pageYOffset ?? document.documentElement.scrollTop ?? document.body.scrollTop ?? 0;
-
-  function replaceFrameNumber(url, oneBasedIndex) {
-    const m = url.match(/(.*?)(\d+)(\.(?:png|jpg|jpeg|webp|gif))(?:\?.*)?$/i);
-    if (!m) return url;
-    const [ , prefix, digits, ext ] = m;
-    const next = String(oneBasedIndex).padStart(digits.length, '0');
-    return `${prefix}${next}${ext}`;
-  }
-
-  function initKeyShotXR() {
-    xrInstance = new keyshotXR(
-      "KeyShotXR",
-      "RealCLoth2.1822",
-      497, 883, "#FFFFFF",
-      totalFrames, 1,
-      true, false,
-      -0.05, 0.05,
-      totalFrames - 1, 0,
-      1, 1,
-      0.96,
-      true, false,
-      false,
-      "png",
-      true,
-      "LOGO-03-03.png",
-      true,
-      false, false,
-      {}, false
-    );
-
-    let img = document.querySelector('#KeyShotXR img');
-    if (!img) {
-      const id = setInterval(() => {
-        img = document.querySelector('#KeyShotXR img');
-        if (img) { clearInterval(id); onScroll(); }
-      }, 16);
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>KeyShotXR Scroll Control Revisado</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+      /* Hacemos la página mucho más alta para que la animación vaya más lenta */
+      min-height: 1200vh;
     }
 
-    // Elegí UNA de las dos estrategias:
-
-    // ESTRATEGIA 1: solo curva lenta (sin tocar min-height)
-    // const k = 2.0; // >1 = más lento al principio
-    // function onScroll() {
-    //   if (!img) img = document.querySelector('#KeyShotXR img');
-    //   if (!img) return;
-    //   const maxScroll = Math.max(1, document.body.scrollHeight - innerHeight);
-    //   let t = getScrollY() / maxScroll;
-    //   t = Math.min(Math.max(t, 0), 1);
-    //   t = Math.pow(t, k);
-    //   const idx0 = Math.floor(t * (totalFrames - 1));
-    //   const nextUrl = replaceFrameNumber(img.src, idx0 + 1);
-    //   if (img.src !== nextUrl) img.src = nextUrl;
-    // }
-
-    // ESTRATEGIA 2: “más lenta” real + último frame garantizado (recomendado si ya subiste a 1200vh)
-    function onScroll() {
-      if (!img) img = document.querySelector('#KeyShotXR img');
-      if (!img) return;
-      const maxScroll = Math.max(1, document.body.scrollHeight - innerHeight);
-      let t = getScrollY() / maxScroll;
-
-      const atBottom = (getScrollY() >= maxScroll - 1);
-      const SLOWDOWN = 1; // ya lo resolvemos con 1200vh; si querés aún más, probá 1.5 o 2
-      if (!atBottom) t = t / SLOWDOWN; else t = 1;
-
-      t = Math.min(Math.max(t, 0), 1);
-      const idx0 = Math.floor(t * (totalFrames - 1));
-      const nextUrl = replaceFrameNumber(img.src, idx0 + 1);
-      if (img.src !== nextUrl) img.src = nextUrl;
+    #KeyShotXR {
+      position: sticky;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;     /* Centra verticalmente */
+      justify-content: center; /* Centra horizontalmente */
+      background-color: #ffffff;
+      z-index: 10;
+      overflow: hidden;
     }
 
-    addEventListener('scroll', onScroll, { passive: true });
-    addEventListener('resize', onScroll, { passive: true });
-    requestAnimationFrame(onScroll);
-  }
+    #KeyShotXR img {
+      width: min(90vw, 900px); /* Limita el tamaño máximo */
+      height: auto;
+      display: block;
+    }
 
-  addEventListener('DOMContentLoaded', initKeyShotXR);
-</script>
+    .content-section {
+      width: 100%;
+      max-width: 1200px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+  </style>
+
+  <!-- Ajustá esta ruta si tu export tiene otra estructura -->
+  <script defer src="./RealCLoth2.1822/files/KeyShotXR.js"></script>
+  <script defer>
+    var xrInstance;
+    var totalFrames = 379;
+
+    const getScrollY = () => 
+      window.pageYOffset ?? document.documentElement.scrollTop ?? document.body.scrollTop ?? 0;
+
+    // Función para reemplazar el número del frame en la URL manteniendo los ceros
+    function replaceFrameNumber(url, oneBasedIndex) {
+      const m = url.match(/(.*?)(\d+)(\.(?:png|jpg|jpeg|webp|gif))(?:\?.*)?$/i);
+      if (!m) return url;
+      const [ , prefix, digits, ext ] = m;
+      const next = String(oneBasedIndex).padStart(digits.length, '0');
+      return `${prefix}${next}${ext}`;
+    }
+
+    function initKeyShotXR() {
+      xrInstance = new keyshotXR(
+        "KeyShotXR",
+        "RealCLoth2.1822",
+        497, 883, "#FFFFFF",
+        totalFrames, 1,
+        true, false,
+        -0.05, 0.05,
+        totalFrames - 1, 0,
+        1, 1,
+        0.96,
+        true, false,
+        false,
+        "png",
+        true,
+        "LOGO-03-03.png",
+        true,
+        false, false,
+        {}, false
+      );
+
+      let img = document.querySelector('#KeyShotXR img');
+      if (!img) {
+        const id = setInterval(() => {
+          img = document.querySelector('#KeyShotXR img');
+          if (img) { clearInterval(id); onScroll(); }
+        }, 16);
+      }
+
+      // Curva de desplazamiento suave (más lento al principio, más fluido al final)
+      const k = 2.0; // Mayor = más lento el inicio
+
+      function onScroll() {
+        if (!img) img = document.querySelector('#KeyShotXR img');
+        if (!img) return;
+
+        const maxScroll = Math.max(1, document.body.scrollHeight - innerHeight);
+        let t = getScrollY() / maxScroll;
+        t = Math.min(Math.max(t, 0), 1);
+        t = Math.pow(t, k); // Aplica la curva de desaceleración
+
+        const idx0 = Math.floor(t * (totalFrames - 1));
+        const nextUrl = replaceFrameNumber(img.src, idx0 + 1);
+        if (img.src !== nextUrl) img.src = nextUrl;
+      }
+
+      addEventListener('scroll', onScroll, { passive: true });
+      addEventListener('resize', onScroll, { passive: true });
+      requestAnimationFrame(onScroll);
+    }
+
+    addEventListener('DOMContentLoaded', initKeyShotXR);
+  </script>
+</head>
+
+<body oncontextmenu="return false;">
+  <div id="KeyShotXR"></div>
+
+  <section class="content-section">
+    <h1>Contenido después del XR</h1>
+    <p>El visor permanece fijo mientras haces scroll y la animación avanza lentamente.</p>
+    <p>...</p>
+  </section>
+</body>
+</html>
